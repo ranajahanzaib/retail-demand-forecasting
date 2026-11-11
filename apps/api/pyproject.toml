@@ -1,0 +1,40 @@
+[project]
+name = "retail-demand-forecasting"
+version = "0.1.0"
+description = "Local-first retail forecasting and model reliability laboratory"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Rana Jahanzaib" }]
+requires-python = ">=3.12"
+dependencies = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "pandas>=2.2", "numpy>=2.0", "scikit-learn>=1.5", "lightgbm>=4.5", "openpyxl>=3.1", "pyarrow>=18", "typer>=0.12", "joblib>=1.4"]
+
+[project.urls]
+Homepage = "https://github.com/ranajahanzaib/retail-demand-forecasting"
+Repository = "https://github.com/ranajahanzaib/retail-demand-forecasting"
+Issues = "https://github.com/ranajahanzaib/retail-demand-forecasting/issues"
+
+[project.scripts]
+demandsense = "demandsense.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.8",
+    "httpx2>=2.16.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint.per-file-ignores]
+"src/demandsense/cli.py" = ["B008"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/demandsense"]
