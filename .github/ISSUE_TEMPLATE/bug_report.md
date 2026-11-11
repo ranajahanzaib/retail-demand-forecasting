@@ -1,26 +1,28 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: ''
+about: Report a reproducible problem
+title: ""
 labels: bug
-assignees: ''
+assignees: ""
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Summary
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. See error
+Describe what happened and what you expected.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Reproduction steps
 
-**Environment**
-- OS: [e.g. macOS 26.4.1, Windows 11, Ubuntu 24.04.4]
-- Version: [e.g. 1.0.0]
+1. Include the command or dashboard action.
+2. Include the relevant input type (synthetic demo, UCI workbook, or another CSV).
+3. Describe the result.
 
-**Additional context**
-Add any other context or screenshots here.
+## Environment
+
+- Operating system:
+- Python version:
+- Node.js version, if relevant:
+- Retail Demand Forecasting version or commit:
+
+## Logs
+
+Include relevant error output. Remove credentials, personal data, and private transaction details before posting.

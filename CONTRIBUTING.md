@@ -1,46 +1,30 @@
-## Contributing
+# Contributing
 
-We welcome contributions of all kinds to improve this project! Here's how you can get involved:
+Contributions that improve forecasting correctness, data quality, usability, or documentation are welcome.
 
-1. **Fork the Repository**: Start by forking the repository to your GitHub account.
+## Development setup
 
-2. **Clone Your Fork**: Clone the forked repository to your local machine:
+Install the dependencies described in the [README](README.md), including Node.js 20.19+ or 22.13+ and `libomp` on macOS, then work from the repository root. The API and dashboard can be run independently.
 
-   ```bash
-   git clone <repo_url>
-   cd repo_dir
-   ```
+## Checks
 
-3. **Create a Branch**: Create a new branch for your feature or bug fix:
+Run the relevant checks before opening a pull request:
 
-   ```bash
-   git checkout -b feature-name
-   ```
+```bash
+cd apps/api
+uv run ruff check src tests
+uv run pytest
 
-4. **Make Changes**: Make your changes to the codebase. Be sure to follow existing code style and conventions.
+cd ../web
+pnpm lint
+pnpm test
+pnpm build
+```
 
-5. **Commit Changes**: Commit your changes with a clear and descriptive message:
+The Playwright smoke test requires generated demo artifacts and an installed Chromium browser. Build the fixture with `uv run demandsense build-demo` from `apps/api`, then run `pnpm test:e2e` from `apps/web`.
 
-   ```bash
-   git commit -m "Add detailed description of the changes"
-   ```
+## Pull requests
 
-6. **Push Changes**: Push your changes to your fork:
+Describe the problem, summarize the change, and list the checks that were run. Include test coverage for behavior changes and update documentation when commands, data semantics, API responses, or user-facing behavior change. Document breaking changes and migration steps.
 
-   ```bash
-   git push origin feature-name
-   ```
-
-7. **Submit a Pull Request**: Open a pull request from your branch to the main repository's branch. Include a detailed description of your changes and the problem they solve.
-
-8. **Review and Feedback**: Participate in the review process. Make any requested changes, and your contribution will be merged!
-
-### Guidelines
-
-- Ensure your code follows the existing style and conventions.
-- Include tests for any new functionality or bug fixes.
-- Write clear, concise commit messages and pull request descriptions.
-
-### Issues
-
-Feel free to report bugs or suggest enhancements by creating an issue. Be sure to include detailed information about the problem and, if possible, steps to reproduce it.
+For reproducible bugs, include the command, data mode, environment, and relevant error output. Remove credentials, personal data, and private transaction details from logs and examples.

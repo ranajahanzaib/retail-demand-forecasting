@@ -1,10 +1,13 @@
-Fixes #<issue_number_goes_here>
+## Summary
 
-> It's a good idea to open an issue first for discussion.
+Describe the change and the problem it addresses.
 
-**Description**
-A brief summary of what this PR does and why.
+## Validation
 
-- [ ] Tests pass
-- [ ] README updated if needed
-- [ ] No breaking changes (or described below)
+List the checks run and any checks that could not be run.
+
+## Checklist
+
+- [ ] Tests cover behavior changes.
+- [ ] Documentation is updated where needed.
+- [ ] Breaking changes and migration steps are described.
