@@ -1,33 +1,38 @@
 name: CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
+on: [push, pull_request]
 jobs:
-  build:
+  python:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: uv sync --project apps/api --locked
+      - run: uv run --project apps/api ruff check apps/api/src apps/api/tests
+      - run: uv run --project apps/api pytest apps/api/tests
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
+        with: { version: 12.3.4 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: uv sync --project apps/api --locked
+      - run: uv run demandsense build-demo --output ../../artifacts/demo
+        working-directory: apps/api
+      - run: pnpm install --dir apps/web --frozen-lockfile
+      - run: pnpm --dir apps/web build
+      - run: pnpm --dir apps/web lint
+      - run: pnpm --dir apps/web format:check
+      - run: pnpm --dir apps/web test
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium
+      - run: pnpm --dir apps/web test:e2e
+      - uses: actions/upload-artifact@v4
         with:
-          node-version: 20
-
-      # Uncomment and adjust the steps below to match your project's setup
-
-      # - name: Install dependencies
-      #   run: npm ci
-
-      # - name: Lint
-      #   run: npm run lint
-
-      # - name: Run tests
-      #   run: npm test
-
-      # - name: Build
-      #   run: npm run build
+          name: retail-demand-forecasting-demo-screenshot
+          path: docs/images/dashboard-demo.png
