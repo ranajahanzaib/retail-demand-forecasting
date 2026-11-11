@@ -1,0 +1,7 @@
+# Dataset and preparation
+
+Retail Demand Forecasting consumes the official UCI Online Retail workbook or a CSV with its eight source columns. The pipeline validates required headers, coerces quantity/price/date types, identifies case-insensitive cancellation invoice prefixes, excludes invalid dates, non-finite or nonpositive quantity/price, missing invoice or product identifiers, and a small explicit list of administrative stock codes. Missing customer IDs are retained; missing descriptions receive a display label. Duplicate-looking rows are counted but retained because repeated identical invoice lines are not automatically invalid. Exclusion reason counts can overlap when a row has multiple issues.
+
+The quality report records input and accepted counts, exclusions, missing-field counts, duplicate candidates, target units/revenue, products, retention, and dates. Monday–Sunday aggregates are produced; global partial boundary weeks are excluded. Zero weeks are filled only between each product's first and last observed accepted sale. The target is gross positive units and does not represent net sales or latent demand.
+
+When the CLI is run with `--data-mode "UCI Online Retail"`, the manifest records the UCI source URL and DOI, source file SHA-256, ingestion timestamp, row counts, and cleaning choices. Other local inputs are labeled as local transaction data and receive no UCI attribution. Programmatic pipeline calls without a supplied file hash use a deterministic content hash of the loaded rows. Keep the original source workbook outside version control.
