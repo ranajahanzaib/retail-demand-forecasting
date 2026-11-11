@@ -16,7 +16,7 @@ export default defineConfig({
     },
     {
       command:
-        'VITE_API_PROXY_TARGET=http://127.0.0.1:8100 pnpm dev -- --host 127.0.0.1 --port 5174 --strictPort',
+        'VITE_API_PROXY_TARGET=http://127.0.0.1:8100 pnpm exec vite --host 127.0.0.1 --port 5174 --strictPort',
       url: webBaseUrl,
       reuseExistingServer: false,
       timeout: 30_000,
