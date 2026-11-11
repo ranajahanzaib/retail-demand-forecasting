@@ -1,0 +1,18 @@
+{
+  "data_mode": "synthetic demo fixture (not UCI)",
+  "source_url": null,
+  "dataset_doi": null,
+  "source_sha256": "7fe292d8e19ef451f030ff1230197ed1224c1a14c97cc6803605894e31fbdf3f",
+  "ingested_at_utc": "2026-11-10T13:05:39.645352+00:00",
+  "original_row_count": 1107,
+  "accepted_row_count": 1105,
+  "cleaning_configuration": {
+    "target": "gross positive units",
+    "exclude_cancellations": true,
+    "exclude_nonpositive_quantity": true,
+    "exclude_nonpositive_price": true,
+    "exclude_missing_invoice_id": true,
+    "administrative_codes": ["POST", "DOT", "M", "C2", "BANK CHARGES"],
+    "deduplicate": false
+  }
+}

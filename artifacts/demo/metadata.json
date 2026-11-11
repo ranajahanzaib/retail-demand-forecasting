@@ -1,0 +1,326 @@
+{
+  "data_mode": "synthetic demo fixture (not UCI)",
+  "model_id": "retail-demand-forecasting-lightgbm-v0.1",
+  "model_version": "0.1.0",
+  "trained_at_utc": "2026-11-10T13:05:39.668313+00:00",
+  "artifact_format_version": 1,
+  "source_sha256": "7fe292d8e19ef451f030ff1230197ed1224c1a14c97cc6803605894e31fbdf3f",
+  "configuration_hash": "9d2ee9b4f0bbee29f87f8cdce28f21704efd4895309aea5539ce274ece250633",
+  "code_version": "a4cea3e1b5a2e057df898d3f67df65341db6f506",
+  "working_tree_dirty": true,
+  "run_configuration": {
+    "model": {
+      "objective": "regression",
+      "n_estimators": 120,
+      "learning_rate": 0.035,
+      "max_depth": 4,
+      "num_leaves": 12,
+      "min_child_samples": 12,
+      "reg_lambda": 2.0,
+      "random_state": 42,
+      "n_jobs": 1,
+      "deterministic": true
+    },
+    "target_transform": "log1p",
+    "selection_window_fraction": 0.5,
+    "minimum_history_weeks": 8,
+    "cohort_limit": 40,
+    "forecast_horizon": 4,
+    "final_holdout_weeks": 4
+  },
+  "evaluation_folds": [
+    "validation_2020-09-14",
+    "validation_2020-09-21",
+    "validation_2020-09-28",
+    "validation_2020-10-05",
+    "validation_2020-10-12",
+    "validation_2020-10-19",
+    "validation_2020-10-26",
+    "validation_2020-11-02",
+    "final_test"
+  ],
+  "selection_cutoff": "2020-07-06",
+  "forecast_origin": "2020-11-30",
+  "training_cutoff": "2020-11-30",
+  "test_start": "2020-12-07",
+  "products": 22,
+  "forecast_products": 22,
+  "sparse_products_in_cohort": 1,
+  "product_code_map": {
+    "DEMO-001": 0,
+    "DEMO-002": 1,
+    "DEMO-003": 2,
+    "DEMO-004": 3,
+    "DEMO-005": 4,
+    "DEMO-006": 5,
+    "DEMO-007": 6,
+    "DEMO-008": 7,
+    "DEMO-009": 8,
+    "DEMO-010": 9,
+    "DEMO-011": 10,
+    "DEMO-012": 11,
+    "DEMO-013": 12,
+    "DEMO-014": 13,
+    "DEMO-015": 14,
+    "DEMO-016": 15,
+    "DEMO-017": 16,
+    "DEMO-018": 17,
+    "DEMO-019": 18,
+    "DEMO-020": 19,
+    "DEMO-021": 20,
+    "DEMO-022": 21
+  },
+  "cohort_definition": "Selected before validation from an initial training-only window: up to 39 high-volume eligible products plus the most intermittent eligible product; eligibility requires 8 complete weeks and positive units. Forecasts require activity through the common origin.",
+  "weeks": {
+    "complete_week_start": "2020-01-06",
+    "complete_week_end": "2020-12-28",
+    "weekly_rows": 1141
+  },
+  "features": [
+    "product_code",
+    "horizon",
+    "lag_1",
+    "lag_2",
+    "lag_3",
+    "lag_4",
+    "lag_8",
+    "mean_2",
+    "mean_4",
+    "mean_8",
+    "std_4",
+    "max_4",
+    "min_4",
+    "zero_weeks_8",
+    "weeks_since_sale",
+    "age_weeks",
+    "target_month",
+    "target_quarter"
+  ],
+  "feature_schema": {
+    "product_code": "categorical",
+    "horizon": "numeric",
+    "lag_1": "numeric",
+    "lag_2": "numeric",
+    "lag_3": "numeric",
+    "lag_4": "numeric",
+    "lag_8": "numeric",
+    "mean_2": "numeric",
+    "mean_4": "numeric",
+    "mean_8": "numeric",
+    "std_4": "numeric",
+    "max_4": "numeric",
+    "min_4": "numeric",
+    "zero_weeks_8": "numeric",
+    "weeks_since_sale": "numeric",
+    "age_weeks": "numeric",
+    "target_month": "numeric",
+    "target_quarter": "numeric"
+  },
+  "model": "LightGBM pooled direct multi-horizon",
+  "model_configuration": {
+    "objective": "regression",
+    "n_estimators": 120,
+    "learning_rate": 0.035,
+    "max_depth": 4,
+    "num_leaves": 12,
+    "min_child_samples": 12,
+    "reg_lambda": 2.0,
+    "random_state": 42,
+    "n_jobs": 1,
+    "deterministic": true
+  },
+  "target_transform": "log1p",
+  "validation_target_comparison": {
+    "identity": {
+      "mae": 2.54369046767148,
+      "wape": 0.12528040361275514,
+      "wape_percent": 12.528040361275513,
+      "wape_unavailable_reason": null,
+      "bias": 0.053593622883839356,
+      "count": 704
+    },
+    "log1p": {
+      "mae": 2.5158306110716198,
+      "wape": 0.12390826571949212,
+      "wape_percent": 12.390826571949212,
+      "wape_unavailable_reason": null,
+      "bias": -0.1186455449917443,
+      "count": 704
+    },
+    "selected": "log1p"
+  },
+  "validation_metrics": {
+    "mae": 2.5158306110716198,
+    "wape": 0.12390826571949212,
+    "wape_percent": 12.390826571949212,
+    "wape_unavailable_reason": null,
+    "bias": -0.1186455449917443,
+    "count": 704
+  },
+  "selected_baseline": "Trailing 4-week mean",
+  "validation_baselines": {
+    "naive": {
+      "mae": 2.596590909090909,
+      "wape": 0.12788582622079195,
+      "wape_percent": 12.788582622079195,
+      "wape_unavailable_reason": null,
+      "bias": 0.15056818181818182,
+      "count": 704
+    },
+    "mean4": {
+      "mae": 2.088778409090909,
+      "wape": 0.10287533230726179,
+      "wape_percent": 10.28753323072618,
+      "wape_unavailable_reason": null,
+      "bias": 0.22869318181818182,
+      "count": 704
+    },
+    "repeat4": {
+      "mae": 2.387784090909091,
+      "wape": 0.11760179096124249,
+      "wape_percent": 11.760179096124249,
+      "wape_unavailable_reason": null,
+      "bias": 0.22869318181818182,
+      "count": 704
+    }
+  },
+  "interval_calibration": {
+    "method": "absolute validation residuals with finite-sample conformal-style quantiles",
+    "samples": 704,
+    "global_samples": 704,
+    "horizons": {
+      "1": {
+        "samples": 176,
+        "q80": 3.711445785234467,
+        "q90": 4.682929662814729,
+        "source": "horizon-specific validation residuals"
+      },
+      "2": {
+        "samples": 176,
+        "q80": 4.351815192736147,
+        "q90": 4.906357924467514,
+        "source": "horizon-specific validation residuals"
+      },
+      "3": {
+        "samples": 176,
+        "q80": 3.9914308767387237,
+        "q90": 5.158178123866527,
+        "source": "horizon-specific validation residuals"
+      },
+      "4": {
+        "samples": 176,
+        "q80": 3.447933694782275,
+        "q90": 4.408535788855016,
+        "source": "horizon-specific validation residuals"
+      }
+    }
+  },
+  "metrics": {
+    "LightGBM": {
+      "mae": 2.6844150368437956,
+      "wape": 0.1187674827763972,
+      "wape_percent": 11.87674827763972,
+      "wape_unavailable_reason": null,
+      "bias": -2.482877506742919,
+      "count": 88
+    },
+    "Last observation": {
+      "mae": 1.8977272727272727,
+      "wape": 0.08396178984414278,
+      "wape_percent": 8.396178984414277,
+      "wape_unavailable_reason": null,
+      "bias": -0.7386363636363636,
+      "count": 88
+    },
+    "Trailing 4-week mean": {
+      "mae": 2.147727272727273,
+      "wape": 0.09502262443438914,
+      "wape_percent": 9.502262443438914,
+      "wape_unavailable_reason": null,
+      "bias": -1.7272727272727273,
+      "count": 88
+    },
+    "4-week repeating pattern": {
+      "mae": 2.1363636363636362,
+      "wape": 0.09451985922574158,
+      "wape_percent": 9.451985922574158,
+      "wape_unavailable_reason": null,
+      "bias": -1.7272727272727273,
+      "count": 88
+    }
+  },
+  "feature_importance": [
+    {
+      "name": "mean_4",
+      "gain": 13555.101291172206
+    },
+    {
+      "name": "lag_1",
+      "gain": 6851.016974978149
+    },
+    {
+      "name": "mean_8",
+      "gain": 1628.746754616499
+    },
+    {
+      "name": "min_4",
+      "gain": 537.0083318352699
+    },
+    {
+      "name": "product_code",
+      "gain": 231.86955054849386
+    },
+    {
+      "name": "max_4",
+      "gain": 225.87199559807777
+    },
+    {
+      "name": "lag_8",
+      "gain": 141.71299532055855
+    },
+    {
+      "name": "lag_4",
+      "gain": 90.84905302524567
+    },
+    {
+      "name": "lag_3",
+      "gain": 61.01946613192558
+    },
+    {
+      "name": "mean_2",
+      "gain": 56.0586046949029
+    },
+    {
+      "name": "target_month",
+      "gain": 52.63437705859542
+    },
+    {
+      "name": "horizon",
+      "gain": 27.925786159932613
+    },
+    {
+      "name": "age_weeks",
+      "gain": 27.65199339017272
+    },
+    {
+      "name": "lag_2",
+      "gain": 25.611181795597076
+    },
+    {
+      "name": "std_4",
+      "gain": 7.093045607209206
+    },
+    {
+      "name": "zero_weeks_8",
+      "gain": 0.0
+    },
+    {
+      "name": "weeks_since_sale",
+      "gain": 0.0
+    },
+    {
+      "name": "target_quarter",
+      "gain": 0.0
+    }
+  ]
+}
