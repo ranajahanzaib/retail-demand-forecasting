@@ -1,0 +1,38 @@
+{
+  "name": "retail-demand-forecasting-web",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@12.3.4",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "test": "vitest run src",
+    "test:e2e": "playwright test",
+    "lint": "eslint src",
+    "format": "prettier --write src e2e *.ts *.js *.json *.yaml index.html",
+    "format:check": "prettier --check src e2e *.ts *.js *.json *.yaml index.html"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.62.0",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^3.10.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^10.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^6.0.3",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}
