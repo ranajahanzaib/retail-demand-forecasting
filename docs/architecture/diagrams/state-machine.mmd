@@ -1,0 +1,50 @@
+%% State Machine Diagram: Product & Time Series Lifecycle
+%% Traces product progression from raw transaction to forecast generation
+stateDiagram-v2
+    [*] --> RawTransaction : Ingested from CSV / XLSX
+
+    state RawTransaction {
+        [*] --> EvaluatingRow
+        EvaluatingRow --> ExcludedRow : Cancellation / Nonpositive / Admin / Missing ID
+        EvaluatingRow --> AcceptedRow : Valid positive gross sale
+    }
+
+    ExcludedRow --> QualityAuditReport : Counted in quality.json
+    QualityAuditReport --> [*]
+
+    AcceptedRow --> WeeklyAggregation : Resampled to Mon-Sun weeks
+    
+    state WeeklyAggregation {
+        [*] --> CompleteWeekCheck
+        CompleteWeekCheck --> DroppedBoundary : Global incomplete boundary week
+        CompleteWeekCheck --> RetainedWeek : Full 7-day Monday–Sunday week
+        RetainedWeek --> InSpanZeroFill : Internal zero-sales weeks padded
+    }
+
+    InSpanZeroFill --> CohortEvaluation : Split at 50% selection cutoff
+
+    state CohortEvaluation {
+        [*] --> EligibilityCheck
+        EligibilityCheck --> IneligibleProduct : < 8 weeks history OR 0 units
+        EligibilityCheck --> EligibleProduct : >= 8 weeks history AND units > 0
+        EligibleProduct --> HighVolumeCohort : Top 39 ranked by units
+        EligibleProduct --> IntermittentCohort : Highest zero-sales share (1 SKU)
+        EligibleProduct --> CohortOmitted : Eligible but outside top 40 cutoff
+    }
+
+    HighVolumeCohort --> FrozenCohort
+    IntermittentCohort --> FrozenCohort
+
+    state FrozenCohort {
+        [*] --> OriginActivityCheck
+        OriginActivityCheck --> ActiveAtOrigin : >= 1 positive sale in last 8 weeks
+        OriginActivityCheck --> InactiveAtOrigin : No sale in 8 weeks before origin
+    }
+
+    InactiveAtOrigin --> SkippedForecast : Forecast withheld (no zero demand padding)
+    ActiveAtOrigin --> ForecastGenerated : Point & Calibrated Prediction Intervals Produced
+
+    ForecastGenerated --> [*]
+    SkippedForecast --> [*]
+    IneligibleProduct --> [*]
+    CohortOmitted --> [*]

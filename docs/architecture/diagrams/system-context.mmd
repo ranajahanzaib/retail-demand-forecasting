@@ -1,0 +1,34 @@
+%% System Context Diagram for Retail Demand Forecasting
+%% Generated as part of Architecture Discovery
+flowchart TB
+    subgraph ExternalActors["External Actors & Data Sources"]
+        User["Retail Analyst / Demand Planner<br/>[Human Operator]"]
+        UCI["UCI Machine Learning Repository<br/>[External Dataset: Online-Retail.xlsx]"]
+        SyntheticFixture["Synthetic Demo Fixture<br/>[Bundled CSV: data/demo/transactions.csv]"]
+    end
+
+    subgraph SystemBoundary["Retail Demand Forecasting System (Local-First Boundary)"]
+        subgraph ExecutionRuntimes["Application Execution Runtimes"]
+            CLI["Demandsense CLI<br/>[Typer / Python 3.12+]<br/>Commands: pipeline, build-demo, inspect"]
+            Pipeline["Batch Processing & Modeling Core<br/>[Pandas, NumPy, LightGBM, Scikit-learn]<br/>Cleaning, Feature Eng, Validation, Holdout"]
+            API["Local Inference & Reporting API<br/>[FastAPI / Uvicorn]<br/>Port: 8000 (Default)"]
+            Dashboard["Interactive Forecast Dashboard<br/>[React 19 / Vite / Recharts / TanStack Query]<br/>Port: 5173 (Default)"]
+        end
+
+        subgraph StorageLayer["Persistence Boundary (Local Filesystem)"]
+            Artifacts["Local Artifact Store<br/>[artifacts/ or artifacts/demo/]<br/>model.joblib, weekly.parquet, forecasts.json,<br/>backtests.json, metadata.json, quality.json"]
+        end
+    end
+
+    %% Interactions
+    User -->|"Runs CLI commands / pipeline"| CLI
+    User -->|"Interacts with UI (Search, Scenarios, Plots)"| Dashboard
+    UCI -.->|"Manual download to data/raw/"| CLI
+    SyntheticFixture -->|"Default offline fixture input"| CLI
+
+    CLI -->|"Invokes batch pipeline"| Pipeline
+    Pipeline -->|"Writes serialized artifacts"| Artifacts
+
+    Dashboard -->|"HTTP / REST API (via Vite proxy /api)"| API
+    API -->|"Reads artifacts & models (Zero-DB)"| Artifacts
+    API -->|"Computes real-time simulations"| API

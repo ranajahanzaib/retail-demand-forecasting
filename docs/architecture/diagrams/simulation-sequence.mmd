@@ -1,0 +1,61 @@
+%% Sequence Diagram: Demand-Shift Scenario Simulation
+%% Traces real-time perturbation and on-the-fly model inference
+sequenceDiagram
+    autonumber
+    actor User as Dashboard User
+    participant UI as React App (App.tsx)
+    participant API as FastAPI Router (api.py)
+    participant Disk as Artifact Store (Disk)
+    participant ML as LightGBM Booster (Joblib)
+
+    User->>UI: Adjusts shift slider (+30%, 4w, sustained)
+    activate UI
+    UI->>API: POST /api/simulations/demand-shift { product_id, adjustment_pct, window_weeks, shock_type }
+    activate API
+
+    %% Validation
+    API->>API: Validate payload with Pydantic Scenario model
+    alt Invalid Parameters (e.g. adjustment_pct < -50 or > 100)
+        API-->>UI: 422 Unprocessable Entity
+    end
+
+    API->>Disk: Check if model.joblib exists
+    alt Artifacts Missing
+        API-->>UI: 503 Service Unavailable ("Model artifact missing")
+    end
+
+    API->>Disk: load_weekly() (weekly.parquet)
+    Disk-->>API: weekly DataFrame
+
+    API->>API: history_through_origin(product_rows, forecast_origin)
+    alt Product has no positive sales in last 8 weeks
+        API-->>UI: 422 ("Product had no positive sale in recent 8 weeks")
+    end
+
+    API->>Disk: joblib.load(model_path)
+    Disk-->>API: ML LightGBM instance
+
+    %% Perturbation
+    API->>API: Apply shock factor (1 + pct/100) to history array
+    Note over API: sustained: multiply last N weeks<br/>one-time: multiply last week only
+
+    %% On-the-fly Feature Recalculation
+    loop For horizons h = 1..4
+        API->>API: make_features(base_hist, origin, target, h)
+        API->>API: make_features(altered_hist, origin, target, h)
+        API->>ML: predict(base_features)
+        API->>ML: predict(altered_features)
+        Note over API: Apply inverse transform (expm1) if target_transform=='log1p'
+    end
+
+    %% Out-of-range detection
+    API->>API: Compute historical 5th-95th percentiles on past feature values
+    API->>API: Flag altered features outside historical range
+
+    API-->>UI: JSON Response (forecasts, changed_features, out_of_range, caveats)
+    deactivate API
+
+    UI->>UI: Update Recharts ComposedChart with simulated dashed line
+    UI->>UI: Display 4-week delta units & out-of-range warning tags
+    UI-->>User: Rendered visual feedback
+    deactivate UI

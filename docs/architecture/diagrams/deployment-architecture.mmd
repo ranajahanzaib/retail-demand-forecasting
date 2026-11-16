@@ -1,0 +1,34 @@
+%% Deployment Topology Diagram for Retail Demand Forecasting
+%% Illustrates local-first process boundaries, network ports, and filesystem links
+flowchart TB
+    subgraph HostEnvironment["Host Operating System (macOS / Linux / Windows)"]
+        subgraph FileSystem["Local Workspace File Structure"]
+            RawStore["data/raw/ & data/demo/<br/>Source Workbooks & CSV Fixtures"]
+            ArtifactStore["artifacts/ or artifacts/demo/<br/>model.joblib, weekly.parquet, *.json"]
+            SourceCode["apps/api/ & apps/web/<br/>Python & TypeScript Source Trees"]
+        end
+
+        subgraph ProcessBoundaryBackend["Backend Runtime Process (Python 3.12+ / uv)"]
+            FastAPIServer["Uvicorn ASGI Server<br/>Port: 8000 (Default)<br/>Command: uv run uvicorn demandsense.main:app"]
+            BatchJob["CLI Subprocess (Ad-Hoc / Make)<br/>Command: uv run demandsense pipeline"]
+        end
+
+        subgraph ProcessBoundaryFrontend["Frontend Runtime Process (Node.js 20+ / pnpm)"]
+            ViteDevServer["Vite Development Server<br/>Port: 5173 (Host: 0.0.0.0)<br/>Reverse Proxy: /api -> http://localhost:8000"]
+        end
+
+        subgraph ClientRuntime["Client Execution Environment"]
+            WebBrowser["Modern Web Browser / Playwright Chromium<br/>Renders Single Page Application<br/>Access URL: http://localhost:5173"]
+        end
+    end
+
+    %% Storage connections
+    RawStore -->|"Read by batch CLI"| BatchJob
+    BatchJob -->|"Writes serialized artifacts"| ArtifactStore
+    ArtifactStore -->|"Read-only queries & model deserialization"| FastAPIServer
+
+    %% Networking connections
+    WebBrowser -->|"HTTP Page Requests (Port 5173)"| ViteDevServer
+    ViteDevServer -->|"Proxies /api/* requests (Port 8000)"| FastAPIServer
+    FastAPIServer -->|"JSON Responses"| ViteDevServer
+    ViteDevServer -->|"Static Assets + Hydrated JSON"| WebBrowser

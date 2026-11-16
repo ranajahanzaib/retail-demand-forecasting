@@ -1,0 +1,77 @@
+%% Data Flow Diagram for Retail Demand Forecasting
+%% Traces data from raw input through transformation, modeling, storage, and visualization
+flowchart TD
+    subgraph DataSources["Data Ingestion Stage"]
+        Workbook["Raw Transaction File<br/>(Online-Retail.xlsx / transactions.csv)"]
+        DataFrameLoad["Raw DataFrame<br/>Columns: InvoiceNo, StockCode, Quantity, etc."]
+        Workbook -->|"load_transactions()"| DataFrameLoad
+    end
+
+    subgraph CleaningStage["Data Cleaning & Quality Audit"]
+        CleanRows["Accepted Positive Sales<br/>(Nonzero, positive price, valid dates)"]
+        Exclusions["Exclusion Audit Metadata<br/>(Cancellations, Admin codes, Invalids)"]
+        DataFrameLoad -->|"prepare_transactions()"| CleanRows
+        DataFrameLoad -->|"Audit metrics"| Exclusions
+    end
+
+    subgraph AggregationStage["Temporal Resampling Stage"]
+        WeeklyFrame["Weekly Product Series (Mon-Sun)<br/>Internal gap-filling (0 units) inside active span<br/>Boundary weeks dropped"]
+        CleanRows -->|"weekly_series()"| WeeklyFrame
+    end
+
+    subgraph PartitioningStage["Cohort Freezing & Time Partitioning"]
+        SelectionCutoff["Cohort Selection (Early 50% Window)<br/>Top 39 volume + 1 most intermittent"]
+        ValFolds["Rolling Validation Partitions<br/>Origins >= ValStart and Origin + 4w < TestStart"]
+        FinalHoldoutSplit["Untouched Final Holdout<br/>Final 4 weeks of dataset"]
+
+        WeeklyFrame --> SelectionCutoff
+        WeeklyFrame --> ValFolds
+        WeeklyFrame --> FinalHoldoutSplit
+    end
+
+    subgraph FeatureAndModelingStage["Feature Engineering & ML Training"]
+        FeaturesEngine["make_features()<br/>18 Lag, Rolling, Age & Calendar Features<br/>Origin-bounded (no future leakage)"]
+        FoldTraining["Rolling Fold Evaluation<br/>Raw vs. Log1p Target Tuning<br/>Baseline Scoring (Naive, Mean4, Repeat4)"]
+        FinalFit["Final LightGBM Regressor Fit<br/>Trained strictly on targets <= Forecast Origin"]
+        IntervalCalibration["Conformal Residual Quantile Engine<br/>Finite-sample correction for 80% and 90%"]
+
+        SelectionCutoff --> FeaturesEngine
+        ValFolds --> FeaturesEngine
+        FeaturesEngine --> FoldTraining
+        FoldTraining --> FinalFit
+        FoldTraining --> IntervalCalibration
+    end
+
+    subgraph ArtifactSerialization["Artifact Persistence (Local Disk)"]
+        P_Weekly["artifacts/weekly.parquet"]
+        P_Model["artifacts/model.joblib"]
+        P_Forecasts["artifacts/forecasts.json"]
+        P_Backtests["artifacts/backtests.json"]
+        P_Metadata["artifacts/metadata.json"]
+        P_Quality["artifacts/quality.json"]
+        P_Manifest["artifacts/dataset-manifest.json"]
+
+        WeeklyFrame -->|"Write Parquet"| P_Weekly
+        FinalFit -->|"Joblib Dump"| P_Model
+        FinalFit & FeaturesEngine -->|"Generate 4w Cohort Predictions"| P_Forecasts
+        FoldTraining & FinalHoldoutSplit -->|"Validation + Test Errors"| P_Backtests
+        FinalFit & IntervalCalibration -->|"Run Config & Metrics"| P_Metadata
+        Exclusions -->|"Write Audit"| P_Quality
+        CleanRows -->|"Write Provenance"| P_Manifest
+    end
+
+    subgraph ConsumptionAPI["API Serving & Dynamic Simulation"]
+        ReadEndpoints["FastAPI Query Endpoints<br/>(/api/products, /api/forecasts, /api/metrics)"]
+        SimulationEndpoint["POST /api/simulations/demand-shift<br/>1. Perturb history (-50% to +100%)<br/>2. Recompute 18 features<br/>3. Predict with model.joblib<br/>4. Detect out-of-range features"]
+
+        P_Weekly & P_Forecasts & P_Backtests & P_Metadata --> ReadEndpoints
+        P_Weekly & P_Model & P_Metadata --> SimulationEndpoint
+    end
+
+    subgraph WebDashboard["Web Presentation Layer (React SPA)"]
+        DashboardView["Forecast & Reliability Views<br/>1. Actual vs. Forecast Chart<br/>2. Prediction Intervals (80%/90%)<br/>3. Model vs. Baseline Comparison<br/>4. Ingestion Quality Cards"]
+        SimLabView["Scenario Lab<br/>Interactive sliders & sensitivity delta"]
+
+        ReadEndpoints --> DashboardView
+        SimulationEndpoint --> SimLabView
+    end

@@ -1,0 +1,144 @@
+%% Data Model & Schema Diagram for Retail Demand Forecasting
+%% Defines tabular schemas, artifact file contracts, and structural relationships
+classDiagram
+    direction TB
+
+    class RawTransaction {
+        +string InvoiceNo
+        +string StockCode
+        +string Description
+        +float Quantity
+        +datetime InvoiceDate
+        +float UnitPrice
+        +string CustomerID
+        +string Country
+    }
+
+    class AcceptedTransaction {
+        +string InvoiceNo
+        +string StockCode
+        +string Description
+        +float Quantity
+        +datetime InvoiceDate
+        +float UnitPrice
+        +float revenue
+        +timestamp week_start
+    }
+
+    class WeeklyAggregate {
+        +string StockCode
+        +timestamp week_start
+        +float weekly_units_sold
+        +float weekly_revenue
+        +int transaction_lines
+        +int active_days
+        +float average_unit_price
+        +string product_description
+    }
+
+    class FeatureVector {
+        +int product_code
+        +int horizon
+        +float lag_1
+        +float lag_2
+        +float lag_3
+        +float lag_4
+        +float lag_8
+        +float mean_2
+        +float mean_4
+        +float mean_8
+        +float std_4
+        +float max_4
+        +float min_4
+        +float zero_weeks_8
+        +float weeks_since_sale
+        +int age_weeks
+        +int target_month
+        +int target_quarter
+    }
+
+    class ForecastRecord {
+        +string model_version
+        +string product_id
+        +string product_description
+        +date forecast_origin
+        +date target_week
+        +int horizon
+        +float predicted_units
+        +float baseline_units
+        +float baseline_naive_units
+        +float baseline_repeat4_units
+        +float lower_80
+        +float upper_80
+        +float lower_90
+        +float upper_90
+    }
+
+    class BacktestRecord {
+        +float actual_units
+        +float absolute_error
+        +float signed_error
+        +string fold
+        +string evaluation_fold
+    }
+
+    class QualityReport {
+        +int original_rows
+        +int accepted_positive_sales_rows
+        +int excluded_rows
+        +int cancellation_rows
+        +int invalid_date_rows
+        +int missing_invoice_id_rows
+        +int invalid_quantity_rows
+        +int invalid_price_rows
+        +int missing_product_id_rows
+        +int administrative_rows
+        +int duplicate_candidates
+        +int missing_customer_ids
+        +float retention_pct
+        +float gross_positive_units
+        +float gross_positive_revenue
+    }
+
+    class DatasetManifest {
+        +string data_mode
+        +string source_url
+        +string dataset_doi
+        +string source_sha256
+        +timestamp ingested_at_utc
+        +int original_row_count
+        +int accepted_row_count
+        +object cleaning_configuration
+    }
+
+    class ModelMetadata {
+        +string model_id
+        +string model_version
+        +timestamp trained_at_utc
+        +string source_sha256
+        +string configuration_hash
+        +string code_version
+        +bool working_tree_dirty
+        +object run_configuration
+        +list evaluation_folds
+        +date selection_cutoff
+        +date forecast_origin
+        +date test_start
+        +int products
+        +map product_code_map
+        +object validation_metrics
+        +string selected_baseline
+        +object interval_calibration
+        +object metrics
+        +list feature_importance
+    }
+
+    %% Relationships
+    RawTransaction --> AcceptedTransaction : "Filtered by prepare_transactions()"
+    AcceptedTransaction --> WeeklyAggregate : "Aggregated by weekly_series()"
+    AcceptedTransaction --> QualityReport : "Generates quality audit"
+    AcceptedTransaction --> DatasetManifest : "Generates manifest"
+    WeeklyAggregate --> FeatureVector : "Engineered by make_features()"
+    FeatureVector --> ForecastRecord : "Predicted by model.joblib"
+    ForecastRecord <|-- BacktestRecord : "Extends with ground truth"
+    BacktestRecord --> ModelMetadata : "Evaluated into holdout metrics"

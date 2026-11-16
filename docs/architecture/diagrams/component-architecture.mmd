@@ -1,0 +1,121 @@
+%% Component Architecture Diagram for Retail Demand Forecasting
+%% Shows internal modules, public interfaces, dependencies, and boundary interactions
+flowchart TB
+    subgraph APIService["Backend Application (apps/api / demandsense)"]
+        subgraph CLIModule["demandsense.cli"]
+            CLI_App["Typer app instance"]
+            CmdPipeline["pipeline(input, output, data_mode)"]
+            CmdDemo["build_demo(input, output)"]
+            CmdInspect["inspect(artifacts)"]
+            CLI_App --> CmdPipeline
+            CLI_App --> CmdDemo
+            CLI_App --> CmdInspect
+        end
+
+        subgraph PipelineModule["demandsense.pipeline"]
+            LoadTx["load_transactions(path)"]
+            PrepTx["prepare_transactions(raw)"]
+            WeeklySeries["weekly_series(tx)"]
+            CohortSelect["select_product_cohort(weekly, cutoff, max=40)"]
+            HistCutoff["history_through_origin(product, origin)"]
+            MakeFeats["make_features(hist, origin, target, horizon, age)"]
+            Baselines["baseline(hist, horizon, name)"]
+            MetricsCalc["metrics(actual, predicted)"]
+            ValOrigins["validation_origins(weeks, val_start, test_start)"]
+            QuantileCalc["finite_sample_quantile(errors, coverage)"]
+            RunPipeline["run_pipeline(raw, output, sha256, data_mode)"]
+
+            RunPipeline --> LoadTx
+            RunPipeline --> PrepTx
+            RunPipeline --> WeeklySeries
+            RunPipeline --> CohortSelect
+            RunPipeline --> ValOrigins
+            RunPipeline --> MakeFeats
+            RunPipeline --> Baselines
+            RunPipeline --> MetricsCalc
+            RunPipeline --> QuantileCalc
+        end
+
+        subgraph ServerModule["demandsense.api & demandsense.main"]
+            FastAPI_App["FastAPI app (demandsense.api:app)"]
+            DataHelpers["read_json(), load_weekly(), grouped_metrics()"]
+            PydanticModels["Pydantic Schemas:<br/>Scenario, ProductPage, ForecastList,<br/>BacktestList, HealthResponse"]
+            
+            HealthEp["GET /api/health"]
+            MetaEp["GET /api/metadata"]
+            DatasetEp["GET /api/dataset/summary, quality, manifest"]
+            ProductEp["GET /api/products, /{id}, /{id}/history"]
+            ForecastEp["GET /api/forecasts, /{id}, /{id}/comparison"]
+            ModelEp["GET /api/models, /metrics, /by-horizon, /by-product"]
+            BacktestEp["GET /api/backtests, /{id}"]
+            IntervalEp["GET /api/intervals/coverage"]
+            FeatureEp["GET /api/features/importance"]
+            SimulateEp["POST /api/simulations/demand-shift"]
+
+            FastAPI_App --> HealthEp
+            FastAPI_App --> MetaEp
+            FastAPI_App --> DatasetEp
+            FastAPI_App --> ProductEp
+            FastAPI_App --> ForecastEp
+            FastAPI_App --> ModelEp
+            FastAPI_App --> BacktestEp
+            FastAPI_App --> IntervalEp
+            FastAPI_App --> FeatureEp
+            FastAPI_App --> SimulateEp
+
+            ProductEp --> DataHelpers
+            ForecastEp --> DataHelpers
+            ModelEp --> DataHelpers
+            BacktestEp --> DataHelpers
+            IntervalEp --> DataHelpers
+            SimulateEp --> PydanticModels
+            SimulateEp --> MakeFeats
+            SimulateEp --> HistCutoff
+        end
+    end
+
+    subgraph ClientService["Frontend Application (apps/web)"]
+        subgraph EntryModule["apps/web/src/main.tsx"]
+            RootMount["createRoot()"]
+            QCP["QueryClientProvider"]
+            RootMount --> QCP
+        end
+
+        subgraph AppView["apps/web/src/App.tsx"]
+            AppShell["App() Root Component"]
+            StateHooks["React State:<br/>selected, search, adjust, window,<br/>shockType, section, interval, fold"]
+            TanStackQueries["useQuery Hooks:<br/>meta, metrics, health, products,<br/>forecasts, coverage, backtests, sim..."]
+            
+            NavView["Navigation Sidebar (6 Sections)"]
+            OverviewView["Overview Panel & Chart"]
+            SimLabView["Scenario Lab Panel (Sliders)"]
+            ModelCompView["Model Comparison Panel"]
+            BacktestView["Backtesting Table View"]
+            ReliabilityView["Reliability & Gain View"]
+            QualityView["Data Quality & Ingestion Audit View"]
+
+            AppShell --> StateHooks
+            AppShell --> TanStackQueries
+            AppShell --> NavView
+            AppShell --> OverviewView
+            AppShell --> SimLabView
+            AppShell --> ModelCompView
+            AppShell --> BacktestView
+            AppShell --> ReliabilityView
+            AppShell --> QualityView
+        end
+
+        subgraph HelpersModule["apps/web/src/lib/metrics.ts"]
+            FmtUnits["formatUnits(value)"]
+            IntCoverage["intervalCoverage(actual, lower, upper)"]
+        end
+
+        QCP --> AppShell
+        AppShell --> FmtUnits
+        AppShell --> IntCoverage
+    end
+
+    %% Interservice links
+    CmdPipeline --> RunPipeline
+    CmdDemo --> RunPipeline
+    TanStackQueries -->|"REST HTTP JSON"| FastAPI_App

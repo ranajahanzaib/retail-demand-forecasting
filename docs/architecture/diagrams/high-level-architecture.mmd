@@ -1,0 +1,73 @@
+%% High-Level Architecture Diagram for Retail Demand Forecasting
+%% Shows major application components, responsibilities, boundaries, and communication
+flowchart LR
+    subgraph DataIngestion["1. Ingestion & Preprocessing Subsystem"]
+        direction TB
+        RawData["Raw Transactions<br/>(Excel .xlsx / CSV)"]
+        Load["load_transactions()<br/>Schema Validation"]
+        Clean["prepare_transactions()<br/>Conservative Cleaning & Exclusions"]
+        Weekly["weekly_series()<br/>Mon-Sun Aggregation & In-Span Zero Fill"]
+        RawData --> Load --> Clean --> Weekly
+    end
+
+    subgraph BatchModeling["2. Batch Modeling & Evaluation Subsystem"]
+        direction TB
+        Cohort["select_product_cohort()<br/>Pre-Test Window Selection (Max 40 SKUs)"]
+        FeatEng["make_features()<br/>18 Lag, Rolling & Calendar Features"]
+        ValFold["Rolling Validation Engine<br/>Leakage-Free Fold Fitting & Horizon Testing"]
+        ModelFit["Final LightGBM Regressor<br/>Pooled Direct Multi-Horizon (h=1..4)"]
+        Quantiles["Interval Calibration<br/>Finite-Sample Conformal Residuals (80%, 90%)"]
+        Holdout["Final Holdout Evaluation<br/>Untouched 4-Week Holdout vs. 3 Baselines"]
+
+        Cohort --> FeatEng
+        FeatEng --> ValFold
+        ValFold --> ModelFit
+        ValFold --> Quantiles
+        ModelFit --> Holdout
+        Quantiles --> Holdout
+    end
+
+    subgraph LocalPersistence["3. Local Artifact Repository (Local Filesystem)"]
+        direction TB
+        ParquetData["weekly.parquet<br/>Clean Weekly Series"]
+        ModelBinary["model.joblib<br/>Fitted LightGBM Booster"]
+        ForecastJSON["forecasts.json<br/>Cohort 4-Week Point & Interval Predictions"]
+        BacktestJSON["backtests.json<br/>Validation & Final Holdout Predictions"]
+        MetaJSON["metadata.json<br/>Run Provenance, Metrics, Importance, Calibration"]
+        QualityJSON["quality.json & dataset-manifest.json<br/>Cleaning Audit & Data Provenance"]
+    end
+
+    subgraph OnlineServing["4. Online Serving & Simulation Subsystem (FastAPI)"]
+        direction TB
+        APIRouter["FastAPI Endpoints (api.py)<br/>/api/health, /api/metadata, /api/products,<br/>/api/forecasts, /api/models/metrics, /api/backtests"]
+        SimEngine["Scenario Engine (/api/simulations/demand-shift)<br/>Dynamic Feature Perturbation & On-the-Fly Inference"]
+        APIRouter --- SimEngine
+    end
+
+    subgraph FrontendSPA["5. User Interface Subsystem (React 19 / Vite SPA)"]
+        direction TB
+        UIApp["SPA Application Shell (App.tsx)<br/>Navigation: Overview, Products, Comparison,<br/>Backtests, Reliability, Quality"]
+        QueryCache["TanStack Query Cache<br/>Background Fetching & Stale Time Management"]
+        VizEngine["Recharts Visualization<br/>Forecast Curves, Prediction Bands, Bar Charts"]
+        UIApp --> QueryCache
+        UIApp --> VizEngine
+    end
+
+    %% Data flow between subsystems
+    Weekly -->|"Clean Weekly Data"| Cohort
+    Weekly -->|"Weekly DataFrame"| ParquetData
+    Clean -->|"Ingestion Audit"| QualityJSON
+    ModelFit -->|"Serialized Estimator"| ModelBinary
+    Holdout -->|"Forecast Rows"| ForecastJSON
+    Holdout -->|"Backtest Records"| BacktestJSON
+    Holdout -->|"Run Metadata & Metrics"| MetaJSON
+
+    ParquetData -->|"Read-only Queries"| APIRouter
+    ModelBinary -->|"Deserialized for Simulation"| SimEngine
+    ForecastJSON -->|"Cached Read"| APIRouter
+    BacktestJSON -->|"Cached Read"| APIRouter
+    MetaJSON -->|"Cached Read"| APIRouter
+    QualityJSON -->|"Cached Read"| APIRouter
+
+    APIRouter -->|"JSON over HTTP (Proxy:5173 -> 8000)"| QueryCache
+    QueryCache -->|"Props & State"| UIApp

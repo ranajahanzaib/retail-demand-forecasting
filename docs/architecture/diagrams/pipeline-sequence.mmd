@@ -1,0 +1,69 @@
+%% Sequence Diagram: Batch Pipeline Execution
+%% Traces the end-to-end flow of demandsense pipeline command
+sequenceDiagram
+    autonumber
+    actor User as Operator / Engineer
+    participant CLI as demandsense.cli
+    participant Pipe as demandsense.pipeline
+    participant Disk as Local Artifact Storage
+
+    User->>CLI: run pipeline (input=path, output=dir, data_mode=mode)
+    activate CLI
+
+    CLI->>Pipe: load_transactions(input)
+    activate Pipe
+    Pipe-->>CLI: raw_df
+    deactivate Pipe
+
+    CLI->>Pipe: run_pipeline(raw_df, output_dir, sha256, data_mode)
+    activate Pipe
+
+    %% Cleaning
+    Pipe->>Pipe: prepare_transactions(raw_df)
+    Note over Pipe: Excludes cancellations, invalid dates,<br/>nonpositive qty/price, admin SKUs.<br/>Generates quality audit report.
+
+    %% Resampling
+    Pipe->>Pipe: weekly_series(accepted_df)
+    Note over Pipe: Drops partial boundary weeks.<br/>Fills zero-sales weeks inside observed span.
+
+    %% Cohort Selection
+    Pipe->>Pipe: select_product_cohort(weekly_df, selection_cutoff)
+    Note over Pipe: Selects up to 39 high-volume SKUs<br/>+ 1 most intermittent SKU from early 50% window.
+
+    %% Feature Matrix
+    Pipe->>Pipe: Generate training examples using make_features()
+    Note over Pipe: 18 features generated with origin strictly <= target date.
+
+    %% Rolling Validation
+    loop For each validation origin
+        Pipe->>Pipe: examples_through_cutoff(examples, origin)
+        Pipe->>Pipe: fit_model(eligible, raw) & fit_model(eligible, log1p)
+        Pipe->>Pipe: Evaluate fold models & baseline heuristics
+    end
+
+    Note over Pipe: Compares raw vs log1p target MAE.<br/>Selects best target transform and best baseline.
+
+    %% Conformal Calibration
+    Pipe->>Pipe: finite_sample_quantile(residuals, 0.8 & 0.9)
+    Note over Pipe: Horizon-specific calibration (if N>=20)<br/>with global fallback.
+
+    %% Final Fit & Holdout
+    Pipe->>Pipe: Fit final LightGBM model on all pre-test examples
+    Pipe->>Pipe: Predict 4-week holdout for active cohort SKUs
+    Pipe->>Pipe: Evaluate final holdout metrics (MAE, WAPE, Bias)
+
+    %% Persistence
+    Pipe->>Disk: joblib.dump(model, "model.joblib")
+    Pipe->>Disk: write "weekly.parquet"
+    Pipe->>Disk: write "forecasts.json"
+    Pipe->>Disk: write "backtests.json"
+    Pipe->>Disk: write "quality.json"
+    Pipe->>Disk: write "dataset-manifest.json"
+    Pipe->>Disk: write "metadata.json"
+    Disk-->>Pipe: Confirmation
+
+    Pipe-->>CLI: Pipeline summary result dict
+    deactivate Pipe
+
+    CLI->>User: JSON output with quality & metadata summary
+    deactivate CLI
