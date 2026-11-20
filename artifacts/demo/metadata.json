@@ -2,11 +2,11 @@
   "data_mode": "synthetic demo fixture (not UCI)",
   "model_id": "retail-demand-forecasting-lightgbm-v0.1",
   "model_version": "0.1.0",
-  "trained_at_utc": "2026-11-10T13:05:39.668313+00:00",
+  "trained_at_utc": "2026-11-20T15:14:22.289618+00:00",
   "artifact_format_version": 1,
   "source_sha256": "7fe292d8e19ef451f030ff1230197ed1224c1a14c97cc6803605894e31fbdf3f",
   "configuration_hash": "9d2ee9b4f0bbee29f87f8cdce28f21704efd4895309aea5539ce274ece250633",
-  "code_version": "a4cea3e1b5a2e057df898d3f67df65341db6f506",
+  "code_version": "6dceb7fa485ab123341d1ec9f6e511c65e6cc570",
   "working_tree_dirty": true,
   "run_configuration": {
     "model": {
