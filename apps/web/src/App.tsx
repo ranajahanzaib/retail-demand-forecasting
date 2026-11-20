@@ -585,6 +585,73 @@ export default function App() {
             </p>
           </section>
         </div>
+        {section === 'Products' && (
+          <section className="panel detail-panel">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">CATALOG & ACTIVE COHORT</span>
+                <h3>Product directory</h3>
+                <p>
+                  Cohort products evaluated by the pooled multi-horizon model. Select a product to
+                  inspect its forecast.
+                </p>
+              </div>
+            </div>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>DESCRIPTION</th>
+                    <th>4-WEEK FORECAST</th>
+                    <th>4-WEEK BASELINE</th>
+                    <th>HOLDOUT MAE</th>
+                    <th>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => {
+                    const skuForecasts = (forecasts.data?.items ?? []).filter(
+                      (f) => f.product_id === p.product_id,
+                    );
+                    const sumPred = skuForecasts.reduce((acc, f) => acc + f.predicted_units, 0);
+                    const sumBase = skuForecasts.reduce((acc, f) => acc + f.baseline_units, 0);
+                    const skuMetric = (productMetrics.data?.items ?? []).find(
+                      (m: any) => m.product_id === p.product_id,
+                    );
+                    return (
+                      <tr key={p.product_id}>
+                        <td>
+                          <strong>{p.product_id}</strong>
+                        </td>
+                        <td>{p.description}</td>
+                        <td>{skuForecasts.length ? fmt(sumPred) : '—'}</td>
+                        <td>{skuForecasts.length ? fmt(sumBase) : '—'}</td>
+                        <td>
+                          {skuMetric?.LightGBM?.mae != null
+                            ? Number(skuMetric.LightGBM.mae).toFixed(2)
+                            : '—'}
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="inspect-btn"
+                            onClick={() => {
+                              setSelected(p.product_id);
+                              setSection('Overview');
+                            }}
+                          >
+                            Inspect &rarr;
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
         {section === 'Backtesting' && (
           <section className="panel detail-panel">
             <div className="panel-head">

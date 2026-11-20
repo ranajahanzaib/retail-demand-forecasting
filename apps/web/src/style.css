@@ -556,6 +556,19 @@ td {
   color: #46534b;
   white-space: nowrap;
 }
+.inspect-btn {
+  background: #34423b;
+  color: #fff;
+  border: 0;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.inspect-btn:hover {
+  background: #c06d41;
+}
 .importance-list > div {
   display: grid;
   grid-template-columns: 30px 180px 1fr 85px;
