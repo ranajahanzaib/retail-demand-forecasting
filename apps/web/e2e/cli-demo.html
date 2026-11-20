@@ -1,8 +1,7 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>demandsense CLI Showcase</title>
     <style>
       * {
@@ -13,7 +12,9 @@
 
       body {
         background: #111513;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+          monospace;
         padding: 30px;
         display: flex;
         justify-content: center;
@@ -85,7 +86,7 @@
       }
 
       .cmd::before {
-        content: "$ ";
+        content: '$ ';
         color: #588b71;
       }
 
@@ -131,7 +132,6 @@
       .json-bool {
         color: #ff5370;
       }
-
     </style>
   </head>
 
@@ -146,56 +146,99 @@
         <div class="title">demandsense — Retail Demand Forecasting CLI</div>
       </div>
       <div class="term-body">
-        <div class="comment"># 1. Train pooled LightGBM model and generate calibrated artifacts on synthetic fixture
+        <div class="comment">
+          # 1. Train pooled LightGBM model and generate calibrated artifacts on synthetic fixture
         </div>
         <div class="cmd">demandsense build-demo --output artifacts/demo</div>
         <div class="block">
-          <div>[Pipeline] Ingestion: Accepted <span class="highlight">1,105 positive gross sales</span> rows (retention:
-            99.82%, 2 excluded)</div>
-          <div>[Pipeline] Resampling: Complete Monday–Sunday weekly aggregation (2020-01-06 → 2020-12-28)</div>
-          <div>[Pipeline] Cohort: Frozen <span class="highlight">22 products</span> (21 volume + 1 intermittent) at
-            selection cutoff 2020-07-06</div>
-          <div>[Pipeline] Validation: Rolling expanding folds (8 origins) → target transform: <span
-              class="cyan">log1p</span> selected</div>
-          <div>[Pipeline] Fitting: Direct multi-horizon LightGBM (h=1..4, 18 origin-bounded features)</div>
-          <div>[Pipeline] Calibration: Finite-sample residual quantiles (704 validation error samples)</div>
-          <div>[Pipeline] Holdout: Evaluated against Last observation, Trailing 4-week mean, 4-week repeating pattern
+          <div>
+            [Pipeline] Ingestion: Accepted
+            <span class="highlight">1,105 positive gross sales</span> rows (retention: 99.82%, 2
+            excluded)
           </div>
-          <div>[Artifacts] Written: <span class="muted">model.joblib, weekly.parquet, forecasts.json, backtests.json,
-              metadata.json, quality.json</span></div>
+          <div>
+            [Pipeline] Resampling: Complete Monday–Sunday weekly aggregation (2020-01-06 →
+            2020-12-28)
+          </div>
+          <div>
+            [Pipeline] Cohort: Frozen <span class="highlight">22 products</span> (21 volume + 1
+            intermittent) at selection cutoff 2020-07-06
+          </div>
+          <div>
+            [Pipeline] Validation: Rolling expanding folds (8 origins) → target transform:
+            <span class="cyan">log1p</span> selected
+          </div>
+          <div>
+            [Pipeline] Fitting: Direct multi-horizon LightGBM (h=1..4, 18 origin-bounded features)
+          </div>
+          <div>
+            [Pipeline] Calibration: Finite-sample residual quantiles (704 validation error samples)
+          </div>
+          <div>
+            [Pipeline] Holdout: Evaluated against Last observation, Trailing 4-week mean, 4-week
+            repeating pattern
+          </div>
+          <div>
+            [Artifacts] Written:
+            <span class="muted"
+              >model.joblib, weekly.parquet, forecasts.json, backtests.json, metadata.json,
+              quality.json</span
+            >
+          </div>
         </div>
 
         <div class="comment"># 2. Inspect run configuration, holdout metrics, and feature gain</div>
         <div class="cmd">demandsense inspect --artifacts artifacts/demo</div>
         <div class="block">
-          <div><span class="json-key">"model"</span>: <span class="json-str">"LightGBM pooled direct
-              multi-horizon"</span>,</div>
-          <div><span class="json-key">"selected_baseline"</span>: <span class="json-str">"Trailing 4-week mean"</span>,
+          <div>
+            <span class="json-key">"model"</span>:
+            <span class="json-str">"LightGBM pooled direct multi-horizon"</span>,
+          </div>
+          <div>
+            <span class="json-key">"selected_baseline"</span>:
+            <span class="json-str">"Trailing 4-week mean"</span>,
           </div>
           <div><span class="json-key">"metrics"</span>: {</div>
-          <div>&nbsp;&nbsp;<span class="json-key">"LightGBM"</span>: { <span class="json-key">"mae"</span>: <span
-              class="json-num">2.68</span>, <span class="json-key">"wape_percent"</span>: <span
-              class="json-num">11.88%</span>, <span class="json-key">"bias"</span>: <span class="json-num">-2.48</span>,
-            <span class="json-key">"count"</span>: <span class="json-num">88</span> },</div>
-          <div>&nbsp;&nbsp;<span class="json-key">"Trailing 4-week mean"</span>: { <span class="json-key">"mae"</span>:
-            <span class="json-num">2.15</span>, <span class="json-key">"wape_percent"</span>: <span
-              class="json-num">9.50%</span>, <span class="json-key">"bias"</span>: <span class="json-num">-1.73</span>,
-            <span class="json-key">"count"</span>: <span class="json-num">88</span> }</div>
+          <div>
+            &nbsp;&nbsp;<span class="json-key">"LightGBM"</span>: {
+            <span class="json-key">"mae"</span>: <span class="json-num">2.68</span>,
+            <span class="json-key">"wape_percent"</span>: <span class="json-num">11.88%</span>,
+            <span class="json-key">"bias"</span>: <span class="json-num">-2.48</span>,
+            <span class="json-key">"count"</span>: <span class="json-num">88</span> },
+          </div>
+          <div>
+            &nbsp;&nbsp;<span class="json-key">"Trailing 4-week mean"</span>: {
+            <span class="json-key">"mae"</span>: <span class="json-num">2.15</span>,
+            <span class="json-key">"wape_percent"</span>: <span class="json-num">9.50%</span>,
+            <span class="json-key">"bias"</span>: <span class="json-num">-1.73</span>,
+            <span class="json-key">"count"</span>: <span class="json-num">88</span> }
+          </div>
           <div>},</div>
-          <div><span class="json-key">"interval_calibration"</span>: { <span class="json-key">"method"</span>: <span
-              class="json-str">"finite-sample conformal-style quantiles"</span>, <span
-              class="json-key">"samples"</span>: <span class="json-num">704</span> },</div>
+          <div>
+            <span class="json-key">"interval_calibration"</span>: {
+            <span class="json-key">"method"</span>:
+            <span class="json-str">"finite-sample conformal-style quantiles"</span>,
+            <span class="json-key">"samples"</span>: <span class="json-num">704</span> },
+          </div>
           <div><span class="json-key">"top_feature_importance"</span>: [</div>
-          <div>&nbsp;&nbsp;{ <span class="json-key">"name"</span>: <span class="json-str">"mean_4"</span>, <span
-              class="json-key">"gain"</span>: <span class="json-num">13555.10</span> },</div>
-          <div>&nbsp;&nbsp;{ <span class="json-key">"name"</span>: <span class="json-str">"lag_1"</span>, <span
-              class="json-key">"gain"</span>: <span class="json-num">6851.02</span> },</div>
-          <div>&nbsp;&nbsp;{ <span class="json-key">"name"</span>: <span class="json-str">"mean_8"</span>, <span
-              class="json-key">"gain"</span>: <span class="json-num">1628.75</span> }</div>
+          <div>
+            &nbsp;&nbsp;{ <span class="json-key">"name"</span>:
+            <span class="json-str">"mean_4"</span>, <span class="json-key">"gain"</span>:
+            <span class="json-num">13555.10</span> },
+          </div>
+          <div>
+            &nbsp;&nbsp;{ <span class="json-key">"name"</span>:
+            <span class="json-str">"lag_1"</span>, <span class="json-key">"gain"</span>:
+            <span class="json-num">6851.02</span> },
+          </div>
+          <div>
+            &nbsp;&nbsp;{ <span class="json-key">"name"</span>:
+            <span class="json-str">"mean_8"</span>, <span class="json-key">"gain"</span>:
+            <span class="json-num">1628.75</span> }
+          </div>
           <div>]</div>
         </div>
       </div>
     </div>
   </body>
-
 </html>
