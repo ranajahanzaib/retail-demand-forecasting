@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use Retail Demand Forecasting in research or teaching, please cite this software, and the UCI Online Retail dataset."
+title: "Retail Demand Forecasting"
+version: 0.1.0
+authors:
+  - family-names: Rana
+    given-names: Jahanzaib
+    orcid: "https://orcid.org/0009-0006-7085-0440"
+repository-code: "https://github.com/ranajahanzaib/retail-demand-forecasting"
+license: MIT
+abstract: "Retail Demand Forecasting is an open-source, local-first forecasting and model reliability laboratory."
+keywords:
+  - demand-forecasting
+  - machine-learning
+  - lightgbm
+  - conformal-prediction
+  - retail-analytics
+references:
+  - type: data
+    title: "Online Retail"
+    authors:
+      - family-names: Chen
+        given-names: D.
+    year: 2015
+    doi: 10.24432/C5BW33
+    url: "https://archive.ics.uci.edu/dataset/352/online+retail"
